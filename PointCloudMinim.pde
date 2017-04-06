@@ -7,7 +7,7 @@ AudioPlayer player;
 int var;
 float noiseScale=0.003;
 Kinect kinect;
-int s = 6;
+int s = 10;
 
 // Angle for rotation
 float a = 0;
