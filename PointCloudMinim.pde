@@ -17,8 +17,9 @@ float[] depthLookUp = new float[2048];
 
 void setup() {
   // Rendering in P3D
-  //Standard size for window is 800x600, I'm scaling it up to 2x that, so 1600x1200
-  size(1600, 1000, P3D);
+  //Standard size for window is 800x600, I'm scaling it up to 2x that, so 1600x1200. But, for now I'm using fullScreen(P3D), we'll see how that works out.
+  //size(1600, 1000, P3D);
+  fullScreen(P3D);
   kinect = new Kinect(this);
   kinect.initDepth();
   minim = new Minim(this);
