@@ -8,9 +8,14 @@ int var;
 float noiseScale=0.003;
 Kinect kinect;
 int s = 10;
-
+int skip = 3;
+float[]noiseValR;
+float[]noiseValG;
+float[]noiseValB;
 // Angle for rotation
 float a = 0;
+
+
 
 // We'll use a lookup table so that we don't have to repeat the math over and over
 float[] depthLookUp = new float[2048];
@@ -20,6 +25,7 @@ void setup() {
   //Standard size for window is 800x600, I'm scaling it up to 2x that, so 1600x1200. But, for now I'm using fullScreen(P3D), we'll see how that works out.
   //size(1600, 1000, P3D);
   fullScreen(P3D);
+  frameRate(240);
   kinect = new Kinect(this);
   kinect.initDepth();
   minim = new Minim(this);
@@ -27,13 +33,23 @@ void setup() {
   for (int i = 0; i < depthLookUp.length; i++) {
     depthLookUp[i] = rawDepthToMeters(i);
   }
+  noiseValR = new float [kinect.width*kinect.height];
+  noiseValG = new float [kinect.width*kinect.height];
+  noiseValB = new float [kinect.width*kinect.height];
+
+  for (int i = 0; i< kinect.height; i+=skip) {
+    for (int j = 0;j< kinect.width;j+=skip) {
+      noiseValR[(i*kinect.width)+j] = noise(i*noiseScale, j*noiseScale);
+      noiseValG[(i*kinect.width)+j] = noise(i*noiseScale*2, j*noiseScale*2);
+      noiseValB[(i*kinect.width)+j] = noise(i*noiseScale*3, j*noiseScale*3);
+    }
+  }
 }
 
 void draw() {
   pushMatrix();
   background(0);
   int[] depth = kinect.getRawDepth();
-  int skip = 3;
   translate(width/2, height/2, -50);
   rotateZ(a);
   for (int x = 0; x < kinect.width; x += skip) {
@@ -43,16 +59,16 @@ void draw() {
       PVector v = depthToWorld(x, y, rawDepth);
 
       //setting noise parameters for gradient stroke
-      float noiseVal = noise(x*noiseScale, y*noiseScale);
-      float noiseVal2 = noise(x*noiseScale*2, y*noiseScale*2);
-      float noiseVal3 = noise(x*noiseScale*3, y*noiseScale*3);
-      stroke(noiseVal*255, noiseVal2*255, noiseVal3*255);
-      
+      /*float noiseVal = noise(x*noiseScale, y*noiseScale);
+       float noiseVal2 = noise(x*noiseScale*2, y*noiseScale*2);
+       float noiseVal3 = noise(x*noiseScale*3, y*noiseScale*3);*/
+      stroke(noiseValR[(y*kinect.width)+x]*255, noiseValG[(y*kinect.width)+x]*255, noiseValB[(y*kinect.width)+x]*255);
+
       //rawDepth stuff is to remove background
-      if( rawDepth> 800){
-        stroke(0,0,0);
+      if ( rawDepth> 800) {
+        stroke(0, 0, 0);
       }
-      
+
       //move and draw each dot
       pushMatrix();
       float factor = 200;
@@ -68,13 +84,13 @@ void draw() {
     }
   }
   popMatrix();
-  
+
   //after closing previous matrices, draw the waveforms
   for (int i = 0; i < player.bufferSize() - 1; i++) {
     float x1 = map(i, 0, player.bufferSize(), 0, width );
     float x2 = map(i+1, 0, player.bufferSize(), 0, width );
     stroke(map(player.left.get(i), -1, 1, 0, 255), map(player.right.get(i), -1, 1, 0, 255), random(0, 255));
-    //strokeWeight(2);
+    strokeWeight(5);
     line( x1, 50 + player.left.get(i)*50, x2, 50 + player.left.get(i+1)*50);
     line( x1, (height-50) + player.right.get(i)*50, x2, (height-50) + player.right.get(i+1)*50);
   }
